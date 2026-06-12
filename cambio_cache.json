@@ -1,0 +1,15 @@
+{
+  "updated_at": "2026-06-12T11:50:00-03:00",
+  "fetched_on": null,
+  "attempted_on": null,
+  "source": null,
+  "rates": [
+    {"code": "USD", "name": "Dólar (USD)", "base_rate": 5.34, "spread": 0.0, "rate": 5.34},
+    {"code": "EUR", "name": "Euro (EUR)", "base_rate": 6.17, "spread": 0.0, "rate": 6.17},
+    {"code": "GBP", "name": "Libra (GBP)", "base_rate": 7.16, "spread": 0.0, "rate": 7.16},
+    {"code": "AED", "name": "Dirham (AED)", "base_rate": 1.46, "spread": 0.0, "rate": 1.46},
+    {"code": "ZAR", "name": "Rand (ZAR)", "base_rate": 0.32, "spread": 0.0, "rate": 0.32}
+  ],
+  "error": null,
+  "spread_applied": false
+}
