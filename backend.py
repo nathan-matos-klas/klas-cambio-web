@@ -55,8 +55,10 @@ def _load_cache() -> dict[str, Any]:
         "fetched_on": None,
         "attempted_on": None,
         "source": API_URL or None,
+        "base_currency": BASE_CURRENCY,
+        "brl_rate": None,
         "rates": [
-            {"code": code, "name": DEFAULT_LABELS[code], "rate": None}
+            {"code": code, "name": DEFAULT_LABELS[code], "rate": None, "brl_per_unit": None}
             for code in CURRENCIES
         ],
         "error": "cache vazio",
@@ -206,13 +208,16 @@ def _normalize_rates(payload: Any) -> list[dict[str, Any]]:
     return ordered_rates
 
 
-def _apply_spreads(rates: list[dict[str, Any]], spreads: dict[str, float]) -> list[dict[str, Any]]:
+def _apply_spreads(rates: list[dict[str, Any]], spreads: dict[str, float], brl_rate: float | None) -> list[dict[str, Any]]:
     adjusted: list[dict[str, Any]] = []
     for item in rates:
         code = item.get("code")
         base_rate = _to_float(item.get("rate"))
         spread = float(spreads.get(code, 0.0) or 0.0)
         adjusted_rate = None if base_rate is None else round(base_rate * (1 + spread), 2)
+        brl_per_unit = None
+        if brl_rate is not None and adjusted_rate not in {None, 0}:
+            brl_per_unit = round(brl_rate / adjusted_rate, 2)
 
         adjusted.append(
             {
@@ -221,6 +226,7 @@ def _apply_spreads(rates: list[dict[str, Any]], spreads: dict[str, float]) -> li
                 "base_rate": base_rate,
                 "spread": spread,
                 "rate": adjusted_rate,
+                "brl_per_unit": brl_per_unit,
             }
         )
     return adjusted
@@ -237,6 +243,14 @@ def fetch_remote_rates() -> dict[str, Any]:
         raise RuntimeError(f"ExchangeRate-API error: {error_type}")
 
     rates_source = payload.get("conversion_rates") if isinstance(payload, dict) else payload
+    brl_rate = None
+    if isinstance(payload, dict) and isinstance(payload.get("conversion_rates"), dict):
+        raw_brl_rate = payload["conversion_rates"].get("BRL")
+        brl_rate = _to_float(raw_brl_rate)
+        if brl_rate is None and BASE_CURRENCY == "BRL":
+            brl_rate = 1.0
+    elif BASE_CURRENCY == "BRL":
+        brl_rate = 1.0
 
     spreads = _load_spreads()
     normalized = {
@@ -247,7 +261,8 @@ def fetch_remote_rates() -> dict[str, Any]:
         "fetched_on": _today_key(),
         "source": API_URL or f"ExchangeRate-API standard endpoint ({BASE_CURRENCY})",
         "base_currency": BASE_CURRENCY,
-        "rates": _apply_spreads(_normalize_rates(rates_source), spreads),
+        "brl_rate": brl_rate,
+        "rates": _apply_spreads(_normalize_rates(rates_source), spreads, brl_rate),
         "error": None,
         "spread_applied": True,
     }
