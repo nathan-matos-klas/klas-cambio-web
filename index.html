@@ -9,7 +9,7 @@
 
   body {
     font-family: "Segoe UI", Tahoma, Arial, sans-serif;
-    background: #FFFFFF;
+    background: #e8eef5;
     color: #1a3550;
     min-height: 100vh;
     display: flex;
@@ -229,14 +229,6 @@
     width: 100%;
     min-width: 0;
     background: transparent;
-    appearance: textfield;
-    -moz-appearance: textfield;
-  }
-
-  .conv-input::-webkit-outer-spin-button,
-  .conv-input::-webkit-inner-spin-button {
-    appearance: none;
-    -webkit-appearance: none;
   }
 
   .conv-sep {
@@ -285,12 +277,12 @@
       <div class="conv-body">
         <div class="conv-group">
           <span class="conv-label">R$</span>
-          <input id="calc-brl" class="conv-input" type="number" min="0" step="any" placeholder="100">
+          <input id="calc-brl" class="conv-input" type="text" inputmode="decimal" placeholder="100,00">
         </div>
         <span class="conv-sep">=</span>
         <div class="conv-group">
           <span class="conv-label" id="calc-code">USD</span>
-          <input id="calc-foreign" class="conv-input" type="number" min="0" step="any" placeholder="18.32">
+          <input id="calc-foreign" class="conv-input" type="text" inputmode="decimal" placeholder="18,32">
         </div>
       </div>
     </div>
@@ -399,6 +391,30 @@
     // ── CONVERTER ──────────────────────────────────
     let calcLastEdited = "brl";
 
+    function parseBR(str) {
+      if (!str) return NaN;
+      // Accepts: "1.234,56" or "1234,56" or "1234.56" or "1234"
+      const s = String(str).trim();
+      // If has both . and , assume . is thousands and , is decimal (pt-BR)
+      if (s.includes(".") && s.includes(",")) {
+        return parseFloat(s.replace(/\./g, "").replace(",", "."));
+      }
+      // Only comma: treat as decimal separator
+      if (s.includes(",")) {
+        return parseFloat(s.replace(",", "."));
+      }
+      return parseFloat(s);
+    }
+
+    function formatBR(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "";
+      return n.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
     function getSelectedRate() {
       if (!currentPayload) return null;
       const rates = Array.isArray(currentPayload.rates) ? currentPayload.rates : [];
@@ -414,11 +430,11 @@
       const rate = getSelectedRate();
       if (!rate) return;
       if (calcLastEdited === "brl") {
-        const val = parseFloat(brlInput.value);
-        foreignInput.value = Number.isFinite(val) && val >= 0 ? (val / rate).toFixed(4) : "";
+        const val = parseBR(brlInput.value);
+        foreignInput.value = Number.isFinite(val) && val >= 0 ? formatBR(val / rate) : "";
       } else {
-        const val = parseFloat(foreignInput.value);
-        brlInput.value = Number.isFinite(val) && val >= 0 ? (val * rate).toFixed(2) : "";
+        const val = parseBR(foreignInput.value);
+        brlInput.value = Number.isFinite(val) && val >= 0 ? formatBR(val * rate) : "";
       }
     }
 
@@ -429,6 +445,16 @@
     document.getElementById("calc-foreign").addEventListener("input", () => {
       calcLastEdited = "foreign";
       refreshCalc();
+    });
+
+    // Format the typed field on blur (e.g. "100" → "100,00"; "1000" → "1.000,00")
+    document.getElementById("calc-brl").addEventListener("blur", (e) => {
+      const val = parseBR(e.target.value);
+      if (Number.isFinite(val) && val >= 0) e.target.value = formatBR(val);
+    });
+    document.getElementById("calc-foreign").addEventListener("blur", (e) => {
+      const val = parseBR(e.target.value);
+      if (Number.isFinite(val) && val >= 0) e.target.value = formatBR(val);
     });
 
     // ── INIT ───────────────────────────────────────
