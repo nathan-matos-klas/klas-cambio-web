@@ -28,14 +28,27 @@ jobs:
           CAMBIO_BASE_CURRENCY: ${{ secrets.CAMBIO_BASE_CURRENCY }}
         run: python update_cache.py
 
-      - name: Commit updated cache
+      - name: Append to historico.csv
+        run: python append_historico.py
+
+      - name: Commit updated files
         run: |
-          if git diff --quiet -- "cambio_cache.json"; then
-            echo "No cache changes to commit."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "cambio_cache.json"
-          git commit -m "chore: update cambio cache"
-          git push
+
+          CHANGED=false
+          if ! git diff --quiet -- "cambio_cache.json"; then
+            git add "cambio_cache.json"
+            CHANGED=true
+          fi
+          if ! git diff --quiet -- "historico.csv"; then
+            git add "historico.csv"
+            CHANGED=true
+          fi
+
+          if [ "$CHANGED" = "true" ]; then
+            git commit -m "chore: update cambio cache and historico"
+            git push
+          else
+            echo "No changes to commit."
+          fi
