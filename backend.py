@@ -24,7 +24,7 @@ API_URL = os.getenv("CAMBIO_API_URL", "").strip()
 API_KEY = os.getenv("CAMBIO_API_KEY", "").strip()
 API_AUTH_MODE = os.getenv("CAMBIO_API_AUTH_MODE", "url").strip().lower()
 API_HEADERS_JSON = os.getenv("CAMBIO_API_HEADERS_JSON", "").strip()
-BASE_CURRENCY = os.getenv("CAMBIO_BASE_CURRENCY", "USD").strip().upper() or "USD"
+BASE_CURRENCY = os.getenv("CAMBIO_BASE_CURRENCY", "BRL").strip().upper() or "BRL"
 
 CURRENCIES = ["USD", "EUR", "GBP", "AED", "ZAR"]
 DEFAULT_LABELS = {
@@ -212,21 +212,26 @@ def _apply_spreads(rates: list[dict[str, Any]], spreads: dict[str, float], brl_r
     adjusted: list[dict[str, Any]] = []
     for item in rates:
         code = item.get("code")
-        base_rate = _to_float(item.get("rate"))
+        api_rate = _to_float(item.get("rate"))
         spread = float(spreads.get(code, 0.0) or 0.0)
-        adjusted_rate = None if base_rate is None else round(base_rate * (1 + spread), 2)
-        brl_per_unit = None
-        if brl_rate is not None and adjusted_rate not in {None, 0}:
-            brl_per_unit = round(brl_rate / adjusted_rate, 2)
+
+        # 1. Convert API rate to BRL per unit of foreign currency
+        # api_rate is "foreign currency per 1 base unit" — inverting gives "BRL per 1 foreign unit"
+        market_brl = None
+        if brl_rate is not None and api_rate not in {None, 0}:
+            market_brl = round(brl_rate / api_rate, 4)
+
+        # 2. Apply spread on top of the BRL price (markup = more BRL per unit)
+        final_brl = None if market_brl is None else round(market_brl * (1 + spread), 2)
 
         adjusted.append(
             {
                 "code": code,
                 "name": item.get("name", DEFAULT_LABELS.get(code, code)),
-                "base_rate": base_rate,
+                "base_rate": api_rate,
                 "spread": spread,
-                "rate": adjusted_rate,
-                "brl_per_unit": brl_per_unit,
+                "rate": final_brl,
+                "brl_per_unit": final_brl,
             }
         )
     return adjusted
@@ -244,13 +249,12 @@ def fetch_remote_rates() -> dict[str, Any]:
 
     rates_source = payload.get("conversion_rates") if isinstance(payload, dict) else payload
     brl_rate = None
-    if isinstance(payload, dict) and isinstance(payload.get("conversion_rates"), dict):
-        raw_brl_rate = payload["conversion_rates"].get("BRL")
-        brl_rate = _to_float(raw_brl_rate)
-        if brl_rate is None and BASE_CURRENCY == "BRL":
-            brl_rate = 1.0
-    elif BASE_CURRENCY == "BRL":
+    if BASE_CURRENCY == "BRL":
+        # Base is BRL: 1 BRL = 1 BRL; api_rate for each currency is "foreign per BRL"
         brl_rate = 1.0
+    elif isinstance(payload, dict) and isinstance(payload.get("conversion_rates"), dict):
+        # Base is another currency (e.g. USD): read how many BRL per 1 base unit
+        brl_rate = _to_float(payload["conversion_rates"].get("BRL"))
 
     spreads = _load_spreads()
     normalized = {
