@@ -1,0 +1,41 @@
+name: Update Cambio Cache
+
+on:
+  schedule:
+    - cron: '30 14 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Update cache from API
+        working-directory: .
+        env:
+          CAMBIO_API_KEY: ${{ secrets.CAMBIO_API_KEY }}
+          CAMBIO_API_AUTH_MODE: ${{ secrets.CAMBIO_API_AUTH_MODE }}
+          CAMBIO_BASE_CURRENCY: ${{ secrets.CAMBIO_BASE_CURRENCY }}
+        run: python update_cache.py
+
+      - name: Commit updated cache
+        run: |
+          if git diff --quiet -- "cambio_cache.json"; then
+            echo "No cache changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "cambio_cache.json"
+          git commit -m "chore: update cambio cache"
+          git push
