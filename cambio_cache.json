@@ -1,46 +1,17 @@
 {
-  "updated_at": "Fri, 12 Jun 2026 15:00:01 +0000",
-  "fetched_on": "2026-06-12",
-  "source": "ExchangeRate-API standard endpoint (BRL)",
-  "base_currency": "BRL",
+  "updated_at": "2026-06-12T11:50:00-03:00",
+  "fetched_on": null,
+  "attempted_on": null,
+  "source": null,
+  "base_currency": "USD",
+  "brl_rate": 1,
   "rates": [
-    {
-      "code": "USD",
-      "name": "Dólar (USD)",
-      "base_rate": 0.2,
-      "spread": 0.02,
-      "rate": 0.2
-    },
-    {
-      "code": "EUR",
-      "name": "Euro (EUR)",
-      "base_rate": 0.17,
-      "spread": 0.03,
-      "rate": 0.18
-    },
-    {
-      "code": "GBP",
-      "name": "Libra (GBP)",
-      "base_rate": 0.15,
-      "spread": 0.03,
-      "rate": 0.15
-    },
-    {
-      "code": "AED",
-      "name": "Dirham (AED)",
-      "base_rate": 0.72,
-      "spread": 0.02,
-      "rate": 0.73
-    },
-    {
-      "code": "ZAR",
-      "name": "Rand (ZAR)",
-      "base_rate": 3.19,
-      "spread": 0.05,
-      "rate": 3.35
-    }
+    {"code": "USD", "name": "Dólar (USD)", "base_rate": 5.34, "spread": 0.0, "rate": 5.34, "brl_per_unit": 5.34},
+    {"code": "EUR", "name": "Euro (EUR)", "base_rate": 6.17, "spread": 0.0, "rate": 6.17, "brl_per_unit": 6.17},
+    {"code": "GBP", "name": "Libra (GBP)", "base_rate": 7.16, "spread": 0.0, "rate": 7.16, "brl_per_unit": 7.16},
+    {"code": "AED", "name": "Dirham (AED)", "base_rate": 1.46, "spread": 0.0, "rate": 1.46, "brl_per_unit": 1.46},
+    {"code": "ZAR", "name": "Rand (ZAR)", "base_rate": 0.32, "spread": 0.0, "rate": 0.32, "brl_per_unit": 0.32}
   ],
   "error": null,
-  "spread_applied": true,
-  "attempted_on": "2026-06-12"
+  "spread_applied": false
 }
