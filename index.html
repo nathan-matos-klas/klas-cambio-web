@@ -39,8 +39,55 @@
     border: 1px solid #d9d9d9;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.02) inset;
     display: grid;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     overflow: hidden;
+  }
+
+  .summary {
+    display: grid;
+    gap: 10px;
+    padding: 20px 24px;
+    border-bottom: 2px solid var(--line);
+    background: linear-gradient(180deg, #fbfcfe 0%, #f5f8fc 100%);
+  }
+
+  .summary-label {
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .summary-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .currency-select {
+    min-width: 220px;
+    padding: 12px 14px;
+    border: 1px solid #cfd9e6;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .summary-value {
+    font-size: clamp(1.9rem, 3.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .summary-caption {
+    font-size: 0.98rem;
+    opacity: 0.82;
+  }
+
+  .selected-row {
+    background: rgba(15, 63, 122, 0.06);
   }
 
   .table {
@@ -149,6 +196,15 @@
 <body>
   <main class="frame">
     <section class="card" aria-label="Tabela de câmbio">
+      <div class="summary">
+        <div class="summary-label">Valor em BRL da moeda selecionada</div>
+        <div class="summary-row">
+          <select id="currency-select" class="currency-select" aria-label="Selecionar moeda"></select>
+          <div class="summary-value" id="brl-value">R$ --</div>
+        </div>
+        <div class="summary-caption" id="brl-caption">Selecione uma moeda para ver a equivalência em reais.</div>
+      </div>
+
       <div class="table">
         <div class="cell header left">Moeda</div>
         <div class="cell header">Câmbio Klas</div>
@@ -187,6 +243,8 @@
       AED: "Dirham (AED)",
       ZAR: "Rand (ZAR)"
     };
+    const currencyOrder = ["USD", "EUR", "GBP", "AED", "ZAR"];
+    let currentPayload = null;
 
     function formatCurrency(value) {
       const number = Number(value);
@@ -213,10 +271,28 @@
     }
 
     function applyRates(payload) {
+      currentPayload = payload;
       const rates = Array.isArray(payload?.rates) ? payload.rates : [];
       const byCode = new Map(rates.map((item) => [String(item.code || "").toUpperCase(), item]));
+      const select = document.getElementById("currency-select");
 
-      for (const code of ["USD", "EUR", "GBP", "AED", "ZAR"]) {
+      if (select && !select.options.length) {
+        for (const code of currencyOrder) {
+          const option = document.createElement("option");
+          option.value = code;
+          option.textContent = byCode.get(code)?.name || fallbackLabels[code] || code;
+          select.appendChild(option);
+        }
+        select.value = currencyOrder[0];
+        select.addEventListener("change", () => renderSelectedCurrency(currentPayload));
+      } else if (select) {
+        for (const option of select.options) {
+          const code = String(option.value || "").toUpperCase();
+          option.textContent = byCode.get(code)?.name || fallbackLabels[code] || code;
+        }
+      }
+
+      for (const code of currencyOrder) {
         const item = byCode.get(code) || {};
         const label = item.name || fallbackLabels[code];
         const rate = item.rate;
@@ -232,10 +308,44 @@
         }
       }
 
+      renderSelectedCurrency(payload);
+
       const footer = document.querySelector(".footer");
       if (footer) {
         footer.textContent = `Atualizado em: ${formatTimestamp(payload?.updated_at)}`;
       }
+    }
+
+    function renderSelectedCurrency(payload) {
+      const select = document.getElementById("currency-select");
+      const selectedCode = String(select?.value || currencyOrder[0]).toUpperCase();
+      const rates = Array.isArray(payload?.rates) ? payload.rates : [];
+      const byCode = new Map(rates.map((item) => [String(item.code || "").toUpperCase(), item]));
+      const selected = byCode.get(selectedCode);
+      const brlValue = selected?.brl_per_unit;
+      const label = selected?.name || fallbackLabels[selectedCode] || selectedCode;
+
+      const valueNode = document.getElementById("brl-value");
+      const captionNode = document.getElementById("brl-caption");
+
+      if (valueNode) {
+        valueNode.textContent = brlValue == null ? "R$ --" : formatCurrency(brlValue);
+      }
+
+      if (captionNode) {
+        captionNode.textContent = brlValue == null
+          ? `Não foi possível calcular o valor em BRL para ${label}.`
+          : `1 ${selectedCode} = ${formatCurrency(brlValue)}.`;
+      }
+
+      for (const row of document.querySelectorAll(".row")) {
+        row.classList.remove("selected-row");
+      }
+
+      const activeLeft = document.getElementById(`label-${selectedCode.toLowerCase()}`);
+      const activeRight = document.getElementById(`rate-${selectedCode.toLowerCase()}`);
+      if (activeLeft) activeLeft.classList.add("selected-row");
+      if (activeRight) activeRight.classList.add("selected-row");
     }
 
     async function carregarCambio() {
