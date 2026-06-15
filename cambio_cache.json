@@ -1,6 +1,6 @@
 {
-  "updated_at": "Fri, 12 Jun 2026 16:00:01 +0000",
-  "fetched_on": "2026-06-12",
+  "updated_at": "Mon, 15 Jun 2026 18:00:01 +0000",
+  "fetched_on": "2026-06-15",
   "source": "ExchangeRate-API standard endpoint (BRL)",
   "base_currency": "BRL",
   "brl_rate": 1.0,
@@ -32,15 +32,15 @@
     {
       "code": "AED",
       "name": "Dirham (AED)",
-      "base_rate": 0.72,
+      "base_rate": 0.73,
       "spread": 0.02,
-      "rate": 1.42,
-      "brl_per_unit": 1.42
+      "rate": 1.4,
+      "brl_per_unit": 1.4
     },
     {
       "code": "ZAR",
       "name": "Rand (ZAR)",
-      "base_rate": 3.19,
+      "base_rate": 3.2,
       "spread": 0.05,
       "rate": 0.33,
       "brl_per_unit": 0.33
@@ -48,5 +48,5 @@
   ],
   "error": null,
   "spread_applied": true,
-  "attempted_on": "2026-06-12"
+  "attempted_on": "2026-06-15"
 }
