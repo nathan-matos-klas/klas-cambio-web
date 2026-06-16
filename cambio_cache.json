@@ -1,6 +1,6 @@
 {
-  "updated_at": "Mon, 15 Jun 2026 18:00:01 +0000",
-  "fetched_on": "2026-06-15",
+  "updated_at": "Tue, 16 Jun 2026 18:00:01 +0000",
+  "fetched_on": "2026-06-16",
   "source": "ExchangeRate-API standard endpoint (BRL)",
   "base_currency": "BRL",
   "brl_rate": 1.0,
@@ -48,5 +48,5 @@
   ],
   "error": null,
   "spread_applied": true,
-  "attempted_on": "2026-06-15"
+  "attempted_on": "2026-06-16"
 }
