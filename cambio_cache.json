@@ -1,6 +1,6 @@
 {
-  "updated_at": "Wed, 17 Jun 2026 17:00:01 +0000",
-  "fetched_on": "2026-06-17",
+  "updated_at": "Thu, 18 Jun 2026 17:00:01 +0000",
+  "fetched_on": "2026-06-18",
   "source": "ExchangeRate-API standard endpoint (BRL)",
   "base_currency": "BRL",
   "brl_rate": 1.0,
@@ -40,7 +40,7 @@
     {
       "code": "ZAR",
       "name": "Rand (ZAR)",
-      "base_rate": 3.19,
+      "base_rate": 3.2,
       "spread": 0.05,
       "rate": 0.33,
       "brl_per_unit": 0.33
@@ -48,5 +48,5 @@
   ],
   "error": null,
   "spread_applied": true,
-  "attempted_on": "2026-06-17"
+  "attempted_on": "2026-06-18"
 }
